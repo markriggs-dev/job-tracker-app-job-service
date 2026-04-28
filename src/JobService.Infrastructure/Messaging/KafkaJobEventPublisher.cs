@@ -25,7 +25,11 @@ public class KafkaJobEventPublisher : IJobEventPublisher
         {
             BootstrapServers = bootstrapServers,
             Acks = Acks.Leader,
-            MessageTimeoutMs = 5000
+            MessageTimeoutMs = 5000,
+            ApiVersionRequest = true,
+            BrokerVersionFallback = "2.0.0",
+            ApiVersionFallbackMs = 0,
+            SecurityProtocol = SecurityProtocol.Plaintext
         };
 
         _producer = new ProducerBuilder<string, string>(config).Build();
