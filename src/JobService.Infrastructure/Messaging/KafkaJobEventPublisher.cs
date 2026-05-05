@@ -36,15 +36,17 @@ public class KafkaJobEventPublisher : IJobEventPublisher
     }
 
     public async Task PublishStatusChangedAsync(
-        Guid jobReqId,
-        string userId,
-        JobStatus previousStatus,
-        JobStatus newStatus)
+        Guid jobReqId, string userId, string? userEmail,
+        string companyName, string roleTitle,
+        JobStatus previousStatus, JobStatus newStatus)
     {
         var payload = new
         {
             JobReqId = jobReqId,
             UserId = userId,
+            UserEmail = userEmail,
+            CompanyName = companyName,
+            RoleTitle = roleTitle,
             PreviousStatus = previousStatus.ToString(),
             NewStatus = newStatus.ToString(),
             OccurredAt = DateTimeOffset.UtcNow
@@ -53,12 +55,16 @@ public class KafkaJobEventPublisher : IJobEventPublisher
         await PublishAsync("job.status.changed", jobReqId.ToString(), payload);
     }
 
-    public async Task PublishApplicationSubmittedAsync(Guid jobReqId, string userId)
+    public async Task PublishApplicationSubmittedAsync(Guid jobReqId, string userId, string? userEmail,
+        string companyName, string roleTitle)
     {
         var payload = new
         {
             JobReqId = jobReqId,
             UserId = userId,
+            UserEmail = userEmail,
+            CompanyName = companyName,
+            RoleTitle = roleTitle,
             OccurredAt = DateTimeOffset.UtcNow
         };
 

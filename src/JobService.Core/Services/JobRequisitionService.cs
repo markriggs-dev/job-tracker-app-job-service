@@ -81,7 +81,7 @@ public class JobRequisitionService
     }
 
     public async Task<JobRequisitionResponse?> UpdateStatusAsync(
-        Guid id, string userId, JobStatus newStatus)
+        Guid id, string userId, JobStatus newStatus, string? userEmail = null)
     {
         var existing = await _repository.GetByIdAsync(id, userId);
         if (existing is null) return null;
@@ -95,10 +95,15 @@ public class JobRequisitionService
 
         var updated = await _repository.UpdateAsync(existing);
 
-        await _eventPublisher.PublishStatusChangedAsync(id, userId, previousStatus, newStatus);
+        await _eventPublisher.PublishStatusChangedAsync(
+            id, userId, userEmail,
+            existing.CompanyName, existing.RoleTitle,
+            previousStatus, newStatus);
 
         if (newStatus == JobStatus.Applied)
-            await _eventPublisher.PublishApplicationSubmittedAsync(id, userId);
+            await _eventPublisher.PublishApplicationSubmittedAsync(
+                id, userId, userEmail,
+                existing.CompanyName, existing.RoleTitle);
 
         return MapToResponse(updated);
     }

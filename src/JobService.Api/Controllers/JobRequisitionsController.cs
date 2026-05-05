@@ -23,12 +23,13 @@ public class JobRequisitionsController : ControllerBase
         _logger = logger;
     }
 
-    private string GetUserId()
-    {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier)
+    private string GetUserId() =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? User.FindFirstValue("sub")
             ?? throw new UnauthorizedAccessException("User ID not found in token");
-    }
+
+    private string? GetUserEmail() =>
+        User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email");
 
     // GET /api/jobs
     [HttpGet]
@@ -99,7 +100,7 @@ public class JobRequisitionsController : ControllerBase
         [FromBody] UpdateJobStatusRequest request)
     {
         var userId = GetUserId();
-        var result = await _service.UpdateStatusAsync(id, userId, request.Status);
+        var result = await _service.UpdateStatusAsync(id, userId, request.Status, GetUserEmail());
 
         if (result is null)
             return NotFound();
