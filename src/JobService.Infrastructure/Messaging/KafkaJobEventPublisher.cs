@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Confluent.Kafka;
-using JobService.Core.Enums;
 using JobService.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,8 +17,7 @@ public class KafkaJobEventPublisher : IJobEventPublisher
     {
         _logger = logger;
 
-        var bootstrapServers = configuration["Kafka:BootstrapServers"]
-            ?? "localhost:9092";
+        var bootstrapServers = configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
 
         var config = new ProducerConfig
         {
@@ -35,10 +33,12 @@ public class KafkaJobEventPublisher : IJobEventPublisher
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
-    public async Task PublishStatusChangedAsync(
+    public async Task PublishJobCreatedAsync(
         Guid jobReqId, string userId, string? userEmail,
         string companyName, string roleTitle,
-        JobStatus previousStatus, JobStatus newStatus)
+        string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate,
+        DateTimeOffset occurredAt)
     {
         var payload = new
         {
@@ -47,16 +47,23 @@ public class KafkaJobEventPublisher : IJobEventPublisher
             UserEmail = userEmail,
             CompanyName = companyName,
             RoleTitle = roleTitle,
-            PreviousStatus = previousStatus.ToString(),
-            NewStatus = newStatus.ToString(),
-            OccurredAt = DateTimeOffset.UtcNow
+            SourceUrl = sourceUrl,
+            CompanyCareerPortalUrl = companyCareerPortalUrl,
+            JobDescription = jobDescription,
+            DateDiscovered = dateDiscovered,
+            ApplicationExpiryDate = applicationExpiryDate,
+            OccurredAt = occurredAt
         };
 
-        await PublishAsync("job.status.changed", jobReqId.ToString(), payload);
+        await PublishAsync("job.application.created", jobReqId.ToString(), payload);
     }
 
-    public async Task PublishApplicationSubmittedAsync(Guid jobReqId, string userId, string? userEmail,
-        string companyName, string roleTitle)
+    public async Task PublishJobUpdatedAsync(
+        Guid jobReqId, string userId, string? userEmail,
+        string companyName, string roleTitle,
+        string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate, DateOnly? dateSubmitted,
+        DateTimeOffset occurredAt)
     {
         var payload = new
         {
@@ -65,10 +72,16 @@ public class KafkaJobEventPublisher : IJobEventPublisher
             UserEmail = userEmail,
             CompanyName = companyName,
             RoleTitle = roleTitle,
-            OccurredAt = DateTimeOffset.UtcNow
+            SourceUrl = sourceUrl,
+            CompanyCareerPortalUrl = companyCareerPortalUrl,
+            JobDescription = jobDescription,
+            DateDiscovered = dateDiscovered,
+            ApplicationExpiryDate = applicationExpiryDate,
+            DateSubmitted = dateSubmitted,
+            OccurredAt = occurredAt
         };
 
-        await PublishAsync("job.application.submitted", jobReqId.ToString(), payload);
+        await PublishAsync("job.application.updated", jobReqId.ToString(), payload);
     }
 
     private async Task PublishAsync(string topic, string key, object payload)

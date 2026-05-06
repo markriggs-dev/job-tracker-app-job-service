@@ -37,56 +37,48 @@ public class JobRequisitionService
         return reqs.Select(MapToListResponse);
     }
 
-    public async Task<JobRequisitionResponse> CreateAsync(
-        string userId, CreateJobRequisitionRequest request)
+    // Publishes to Kafka — consumer writes to DB. Returns 202 immediately.
+    public async Task<JobRequisitionAcceptedResponse> CreateAsync(
+        string userId, string? userEmail, CreateJobRequisitionRequest request)
     {
-        var req = new JobRequisition
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            CompanyName = request.CompanyName,
-            RoleTitle = request.RoleTitle,
-            SourceUrl = request.SourceUrl,
-            CompanyCareerPortalUrl = request.CompanyCareerPortalUrl,
-            JobDescription = request.JobDescription,
-            Status = JobStatus.Discovered,
-            DateDiscovered = request.DateDiscovered,
-            ApplicationExpiryDate = request.ApplicationExpiryDate,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
+        var jobReqId = Guid.NewGuid();
+        var occurredAt = DateTimeOffset.UtcNow;
 
-        var created = await _repository.CreateAsync(req);
-        return MapToResponse(created);
+        await _eventPublisher.PublishJobCreatedAsync(
+            jobReqId, userId, userEmail,
+            request.CompanyName, request.RoleTitle,
+            request.SourceUrl, request.CompanyCareerPortalUrl, request.JobDescription,
+            request.DateDiscovered, request.ApplicationExpiryDate,
+            occurredAt);
+
+        return new JobRequisitionAcceptedResponse(jobReqId, "Job application queued for processing");
     }
 
-    public async Task<JobRequisitionResponse?> UpdateAsync(
-        Guid id, string userId, UpdateJobRequisitionRequest request)
+    // Validates ownership synchronously, then publishes to Kafka — consumer writes to DB.
+    public async Task<JobRequisitionAcceptedResponse?> UpdateAsync(
+        Guid id, string userId, string? userEmail, UpdateJobRequisitionRequest request)
     {
         var existing = await _repository.GetByIdAsync(id, userId);
         if (existing is null) return null;
 
-        existing.CompanyName = request.CompanyName;
-        existing.RoleTitle = request.RoleTitle;
-        existing.SourceUrl = request.SourceUrl;
-        existing.CompanyCareerPortalUrl = request.CompanyCareerPortalUrl;
-        existing.JobDescription = request.JobDescription;
-        existing.DateDiscovered = request.DateDiscovered;
-        existing.ApplicationExpiryDate = request.ApplicationExpiryDate;
-        existing.DateSubmitted = request.DateSubmitted;
-        existing.UpdatedAt = DateTimeOffset.UtcNow;
+        var occurredAt = DateTimeOffset.UtcNow;
 
-        var updated = await _repository.UpdateAsync(existing);
-        return MapToResponse(updated);
+        await _eventPublisher.PublishJobUpdatedAsync(
+            id, userId, userEmail,
+            request.CompanyName, request.RoleTitle,
+            request.SourceUrl, request.CompanyCareerPortalUrl, request.JobDescription,
+            request.DateDiscovered, request.ApplicationExpiryDate, request.DateSubmitted,
+            occurredAt);
+
+        return new JobRequisitionAcceptedResponse(id, "Job update queued for processing");
     }
 
     public async Task<JobRequisitionResponse?> UpdateStatusAsync(
-        Guid id, string userId, JobStatus newStatus, string? userEmail = null)
+        Guid id, string userId, JobStatus newStatus)
     {
         var existing = await _repository.GetByIdAsync(id, userId);
         if (existing is null) return null;
 
-        var previousStatus = existing.Status;
         existing.Status = newStatus;
         existing.UpdatedAt = DateTimeOffset.UtcNow;
 
@@ -94,17 +86,6 @@ public class JobRequisitionService
             existing.DateSubmitted = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var updated = await _repository.UpdateAsync(existing);
-
-        await _eventPublisher.PublishStatusChangedAsync(
-            id, userId, userEmail,
-            existing.CompanyName, existing.RoleTitle,
-            previousStatus, newStatus);
-
-        if (newStatus == JobStatus.Applied)
-            await _eventPublisher.PublishApplicationSubmittedAsync(
-                id, userId, userEmail,
-                existing.CompanyName, existing.RoleTitle);
-
         return MapToResponse(updated);
     }
 

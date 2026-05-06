@@ -1,11 +1,18 @@
-using JobService.Core.Enums;
-
 namespace JobService.Core.Interfaces;
 
 public interface IJobEventPublisher
 {
-    Task PublishStatusChangedAsync(Guid jobReqId, string userId, string? userEmail,
-        string companyName, string roleTitle, JobStatus previousStatus, JobStatus newStatus);
-    Task PublishApplicationSubmittedAsync(Guid jobReqId, string userId, string? userEmail,
-        string companyName, string roleTitle);
+    Task PublishJobCreatedAsync(
+        Guid jobReqId, string userId, string? userEmail,
+        string companyName, string roleTitle,
+        string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate,
+        DateTimeOffset occurredAt);
+
+    Task PublishJobUpdatedAsync(
+        Guid jobReqId, string userId, string? userEmail,
+        string companyName, string roleTitle,
+        string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate, DateOnly? dateSubmitted,
+        DateTimeOffset occurredAt);
 }

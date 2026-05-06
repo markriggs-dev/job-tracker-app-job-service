@@ -29,7 +29,9 @@ public class JobRequisitionsController : ControllerBase
             ?? throw new UnauthorizedAccessException("User ID not found in token");
 
     private string? GetUserEmail() =>
-        User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email");
+        User.FindFirstValue("https://job-tracker/email")
+        ?? User.FindFirstValue(ClaimTypes.Email)
+        ?? User.FindFirstValue("email");
 
     // GET /api/jobs
     [HttpGet]
@@ -64,33 +66,30 @@ public class JobRequisitionsController : ControllerBase
         return Ok(result);
     }
 
-    // POST /api/jobs
+    // POST /api/jobs — returns 202 Accepted; consumer writes to DB
     [HttpPost]
-    public async Task<ActionResult<JobRequisitionResponse>> Create(
+    public async Task<ActionResult<JobRequisitionAcceptedResponse>> Create(
         [FromBody] CreateJobRequisitionRequest request)
     {
         var userId = GetUserId();
-        var result = await _service.CreateAsync(userId, request);
+        var result = await _service.CreateAsync(userId, GetUserEmail(), request);
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = result.Id },
-            result);
+        return Accepted(result);
     }
 
-    // PUT /api/jobs/{id}
+    // PUT /api/jobs/{id} — returns 202 Accepted; consumer writes to DB
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<JobRequisitionResponse>> Update(
+    public async Task<ActionResult<JobRequisitionAcceptedResponse>> Update(
         Guid id,
         [FromBody] UpdateJobRequisitionRequest request)
     {
         var userId = GetUserId();
-        var result = await _service.UpdateAsync(id, userId, request);
+        var result = await _service.UpdateAsync(id, userId, GetUserEmail(), request);
 
         if (result is null)
             return NotFound();
 
-        return Ok(result);
+        return Accepted(result);
     }
 
     // PATCH /api/jobs/{id}/status
@@ -100,7 +99,7 @@ public class JobRequisitionsController : ControllerBase
         [FromBody] UpdateJobStatusRequest request)
     {
         var userId = GetUserId();
-        var result = await _service.UpdateStatusAsync(id, userId, request.Status, GetUserEmail());
+        var result = await _service.UpdateStatusAsync(id, userId, request.Status);
 
         if (result is null)
             return NotFound();

@@ -27,6 +27,11 @@ public record UpdateJobStatusRequest(
     JobStatus Status
 );
 
+public record JobRequisitionAcceptedResponse(
+    Guid JobReqId,
+    string Message
+);
+
 public record JobRequisitionResponse(
     Guid Id,
     string CompanyName,
