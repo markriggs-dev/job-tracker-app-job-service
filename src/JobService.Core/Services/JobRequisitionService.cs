@@ -73,6 +73,15 @@ public class JobRequisitionService
         return new JobRequisitionAcceptedResponse(id, "Job update queued for processing");
     }
 
+    private static readonly HashSet<JobStatus> _submissionImpliedStatuses =
+    [
+        JobStatus.Applied,
+        JobStatus.InProgress,
+        JobStatus.WaitingOnResponse,
+        JobStatus.InterviewScheduled,
+        JobStatus.OfferReceived,
+    ];
+
     public async Task<JobRequisitionResponse?> UpdateStatusAsync(
         Guid id, string userId, JobStatus newStatus)
     {
@@ -82,7 +91,7 @@ public class JobRequisitionService
         existing.Status = newStatus;
         existing.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (newStatus == JobStatus.Applied)
+        if (existing.DateSubmitted is null && _submissionImpliedStatuses.Contains(newStatus))
             existing.DateSubmitted = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var updated = await _repository.UpdateAsync(existing);
