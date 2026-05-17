@@ -9,7 +9,8 @@ public record CreateJobRequisitionRequest(
     string? CompanyCareerPortalUrl,
     string? JobDescription,
     DateOnly DateDiscovered,
-    DateOnly? ApplicationExpiryDate
+    DateOnly? ApplicationExpiryDate,
+    DateTime? InterviewDate
 );
 
 public record UpdateJobRequisitionRequest(
@@ -20,7 +21,8 @@ public record UpdateJobRequisitionRequest(
     string? JobDescription,
     DateOnly DateDiscovered,
     DateOnly? ApplicationExpiryDate,
-    DateOnly? DateSubmitted
+    DateOnly? DateSubmitted,
+    DateTime? InterviewDate
 );
 
 public record UpdateJobStatusRequest(
@@ -44,6 +46,7 @@ public record JobRequisitionResponse(
     DateOnly DateDiscovered,
     DateOnly? ApplicationExpiryDate,
     DateOnly? DateSubmitted,
+    DateTime? InterviewDate,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt
 );
@@ -56,5 +59,6 @@ public record JobRequisitionListResponse(
     string StatusDisplay,
     DateOnly DateDiscovered,
     DateOnly? DateSubmitted,
-    DateOnly? ApplicationExpiryDate
+    DateOnly? ApplicationExpiryDate,
+    DateTime? InterviewDate
 );

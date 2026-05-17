@@ -51,6 +51,9 @@ public class JobServiceDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .IsRequired();
 
+            entity.Property(e => e.InterviewDate)
+                .HasColumnType("timestamp without time zone");
+
             entity.Property(e => e.IsDeleted)
                 .IsRequired()
                 .HasDefaultValue(false);

@@ -48,7 +48,7 @@ public class JobRequisitionService
             jobReqId, userId, userEmail,
             request.CompanyName, request.RoleTitle,
             request.SourceUrl, request.CompanyCareerPortalUrl, request.JobDescription,
-            request.DateDiscovered, request.ApplicationExpiryDate,
+            request.DateDiscovered, request.ApplicationExpiryDate, request.InterviewDate,
             occurredAt);
 
         return new JobRequisitionAcceptedResponse(jobReqId, "Job application queued for processing");
@@ -67,7 +67,7 @@ public class JobRequisitionService
             id, userId, userEmail,
             request.CompanyName, request.RoleTitle,
             request.SourceUrl, request.CompanyCareerPortalUrl, request.JobDescription,
-            request.DateDiscovered, request.ApplicationExpiryDate, request.DateSubmitted,
+            request.DateDiscovered, request.ApplicationExpiryDate, request.DateSubmitted, request.InterviewDate,
             occurredAt);
 
         return new JobRequisitionAcceptedResponse(id, "Job update queued for processing");
@@ -128,6 +128,7 @@ public class JobRequisitionService
         req.DateDiscovered,
         req.ApplicationExpiryDate,
         req.DateSubmitted,
+        req.InterviewDate,
         req.CreatedAt,
         req.UpdatedAt
     );
@@ -140,6 +141,7 @@ public class JobRequisitionService
         GetStatusDisplay(req.Status),
         req.DateDiscovered,
         req.DateSubmitted,
-        req.ApplicationExpiryDate
+        req.ApplicationExpiryDate,
+        req.InterviewDate
     );
 }
