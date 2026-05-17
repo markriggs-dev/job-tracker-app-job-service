@@ -15,6 +15,7 @@ public class JobRequisition
     public DateOnly DateDiscovered { get; set; }
     public DateOnly? ApplicationExpiryDate { get; set; }
     public DateOnly? DateSubmitted { get; set; }
+    public DateTime? InterviewDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public bool IsDeleted { get; set; } = false;

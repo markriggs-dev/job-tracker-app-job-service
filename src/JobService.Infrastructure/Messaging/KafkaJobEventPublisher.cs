@@ -37,7 +37,7 @@ public class KafkaJobEventPublisher : IJobEventPublisher
         Guid jobReqId, string userId, string? userEmail,
         string companyName, string roleTitle,
         string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
-        DateOnly dateDiscovered, DateOnly? applicationExpiryDate,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate, DateTime? interviewDate,
         DateTimeOffset occurredAt)
     {
         var payload = new
@@ -52,6 +52,7 @@ public class KafkaJobEventPublisher : IJobEventPublisher
             JobDescription = jobDescription,
             DateDiscovered = dateDiscovered,
             ApplicationExpiryDate = applicationExpiryDate,
+            InterviewDate = interviewDate,
             OccurredAt = occurredAt
         };
 
@@ -62,7 +63,7 @@ public class KafkaJobEventPublisher : IJobEventPublisher
         Guid jobReqId, string userId, string? userEmail,
         string companyName, string roleTitle,
         string? sourceUrl, string? companyCareerPortalUrl, string? jobDescription,
-        DateOnly dateDiscovered, DateOnly? applicationExpiryDate, DateOnly? dateSubmitted,
+        DateOnly dateDiscovered, DateOnly? applicationExpiryDate, DateOnly? dateSubmitted, DateTime? interviewDate,
         DateTimeOffset occurredAt)
     {
         var payload = new
@@ -78,6 +79,7 @@ public class KafkaJobEventPublisher : IJobEventPublisher
             DateDiscovered = dateDiscovered,
             ApplicationExpiryDate = applicationExpiryDate,
             DateSubmitted = dateSubmitted,
+            InterviewDate = interviewDate,
             OccurredAt = occurredAt
         };
 
